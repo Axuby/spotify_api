@@ -20,3 +20,31 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# container_commands:
+#         01_migrate:
+#             command:"django-admin.py migrate"
+#             leader_only:true
+#         02_createsuperuser:
+#             command:"echo \"from account.models import Account; Account.objects.create_superuser(first_name=admin,last_name=admin,username=admin,email=azubuinsamuel@gmail.com,password=adminadmin)\" | python manage.py runserver"
+#             leader_only:true
+# option_settings:
+#         aws:elasticbeanstalk:application:environment:
+#             DJANGO_SETTINGS_MODULE: spotify_api.settings
+
+# container_commands:
+#   01_makemigrations:
+#     command: "source /var/app/venv/*/bin/activate && python3 manage.py makemigrations --noinput"
+#     leader_only: true
+#   02_migrate:
+#     command: "source /var/app/venv/*/bin/activate && python3 manage.py migrate --noinput"
+#     leader_only: true
+#   03_createsu:
+#     command: "source /var/app/venv/*/bin/activate && python3 account/manage.py createsu"
+#   04_collectstatic:
+#     command: "source /var/app/venv/*/bin/activate && python3 manage.py collectstatic --noinput"
+#     leader_only: true
+#   option_settings:
+#       aws: elasticbeanstalk: application: environment:
+#           DJANGO_SETTINGS_MODULE: spotify_api.settings
