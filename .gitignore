@@ -1,0 +1,11 @@
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+.env
+spenv
+.spenv
+/spenv
+db.sqlite3
+migrations
