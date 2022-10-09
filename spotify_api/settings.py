@@ -31,6 +31,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = config("DEBUG", default=True, cast=bool)
+# DEBUG = False
 DEBUG = bool(int(os.environ.get("DEBUG", 1)))
 
 ALLOWED_HOSTS = [
@@ -149,6 +150,7 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.IsAuthenticated',  # new
         # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',  # new
     ],
+    'EXCEPTION_HANDLER': 'utils.exceptions_handler.custom_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',

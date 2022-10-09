@@ -1,4 +1,6 @@
 
+
+from base64 import urlsafe_b64decode
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -9,6 +11,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.translation import gettext_lazy as _
 from account.models import Account, UserProfile
 from rest_framework import HTTP_HEADER_ENCODING, authentication
+from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
@@ -22,6 +27,50 @@ class LoginSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         # ...
         return token
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ('email',)
+        extra_kwargs = {
+            "email": {
+                "write_only": True
+            }
+        }
+
+    def validate_email(self, value):
+        lower_email = value.lower()
+
+        return lower_email
+
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(min_length=1, write_only=True)
+    uuidb64 = serializers.CharField(min_length=1, write_only=True)
+
+    class Meta:
+        model = Account
+        fields = ("password", "confirm_password", "token", "uuidb64")
+
+    def validate(self, attrs):
+        try:
+            if attrs.get('password') != attrs.get('confirm_password'):
+                raise serializers.ValidationError(
+                    {"password": "Password fields didn't match."})
+            token = attrs.get('token')
+            uuidb64 = attrs.get('uuidb64')
+
+            id = force_str(urlsafe_base64_decode(uuidb64))
+            account = Account.objects.get(id=id)
+
+            if not PasswordResetTokenGenerator().check_token(account, token):
+                raise AuthenticationFailed('The reset link is invalid', 401)
+            account.set_password(attrs.get('password'))
+            account.save()
+        except Exception as e:
+            raise AuthenticationFailed('The reset link is invalid', 401)
+        return super().validate(attrs)
 
 
 class RegisterationSerializer(serializers.ModelSerializer):
@@ -122,12 +171,12 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ('username', 'first_name',
-                  'last_name', 'email', 'bio', 'image', 'profile')
-        extra_kwargs = {
-            'first_name': {'required': True},
-            'last_name': {'required': True},
-        }
+        fields = ('username', 'first_name', 'last_name',
+                  'email', 'bio', 'image', 'profile')
+        # extra_kwargs = {
+        #     'first_name': {'required': True},
+        #     'last_name': {'required': True},
+        # }
 
     def validate_email(self, value):
         user = self.context.get('request').user
